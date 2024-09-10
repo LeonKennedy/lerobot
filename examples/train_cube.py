@@ -12,10 +12,12 @@ from pathlib import Path
 
 import torch
 
-from data.load_dataset import load_dataset
+from data.load_dataset import build_dataset
 from lerobot.common.policies.diffusion.configuration_diffusion import DiffusionConfig
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from loguru import logger
 
+logger.info("start")
 # Create a directory to store the training checkpoint.
 output_directory = Path("outputs/train/example_pusht_diffusion")
 output_directory.mkdir(parents=True, exist_ok=True)
@@ -37,14 +39,13 @@ delta_timestamps = {
     # used to supervise the policy.
     "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
 }
-dataset, stats = load_dataset("cube")
-
+dataset, stats = build_dataset("cube")
+logger.info("created dataset")
 # Set up the the policy.
 # Policies are initialized with a configuration class, in this case `DiffusionConfig`.
 # For this example, no arguments need to be passed because the defaults are set up for PushT.
 # If you're doing something different, you will likely need to change at least some of the defaults.
-cfg = DiffusionConfig()
-cfg.input_shapes["observation.image"] = [3, 240, 320]
+cfg = DiffusionConfig(input_shapes={"observation.image": [3, 240, 320], "observation.state": [7]}, output_shapes={"action": [7]})
 policy = DiffusionPolicy(cfg, dataset_stats=stats)
 policy.train()
 policy.to(device)
@@ -55,11 +56,13 @@ optimizer = torch.optim.Adam(policy.parameters(), lr=1e-4)
 dataloader = torch.utils.data.DataLoader(
     dataset,
     num_workers=4,
-    batch_size=64,
+    batch_size=4,
     shuffle=True,
     pin_memory=device != torch.device("cpu"),
     drop_last=True,
 )
+
+logger.info("created dataloader")
 
 # Run training loop.
 step = 0
@@ -74,7 +77,7 @@ while not done:
         optimizer.zero_grad()
 
         if step % log_freq == 0:
-            print(f"step: {step} loss: {loss.item():.3f}")
+            logger.debug(f"step: {step} loss: {loss.item():.3f}")
         step += 1
         if step >= training_steps:
             done = True
@@ -82,3 +85,4 @@ while not done:
 
 # Save a policy checkpoint.
 policy.save_pretrained(output_directory)
+logger.info("done " + output_directory)
