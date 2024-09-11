@@ -1,3 +1,4 @@
 pyserial
 loguru
 dynamixel_sdk
+keyboard
