@@ -10,11 +10,13 @@
 """
 
 from pathlib import Path
-import imageio
 import numpy
 import torch
 
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
+from lerobot.devices import build_right_arm
+
+right_arm = build_right_arm()
 
 # Create a directory to store the video of the evaluation
 output_directory = Path("outputs/eval/example_pusht_diffusion")

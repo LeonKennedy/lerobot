@@ -1,15 +1,13 @@
 import abc
 import time
 from io import StringIO
-from typing import Tuple, List, Dict
+from typing import Tuple, List
 import sys
 
-from loguru import logger
-
-from .new_arm import build_master_and_puppet, Puppet, Master
+from .dr import build_master_and_puppet, Puppet, Master
 from .dx_trigger import build_trigger, Trigger, build_left_trigger, build_right_trigger
-from .grasper import Grasper, build_grasper, build_left_grasper, build_right_grasper
-from .constants import COM_LEFT, COM_RIGHT, LEADERS_L, LEADERS_R, FOLLOWERS_L, FOLLOWERS_R, TRIGGER_NAME, GRASPER_NAME
+from .main import Grasper, build_left_grasper, build_right_grasper, build_two_grasper
+from .constants import COM_LEFT, COM_RIGHT, LEADERS_L, LEADERS_R, FOLLOWERS_L, FOLLOWERS_R, TRIGGER_NAME
 
 
 class Arm:
@@ -101,7 +99,7 @@ class ArmRight(Arm):
 
 def build_two_arm() -> Tuple[Arm, Arm]:
     left_trigger, right_trigger = build_trigger(TRIGGER_NAME)
-    left_grasper, right_grasper = build_grasper(GRASPER_NAME)
+    left_grasper, right_grasper = build_two_grasper()
     left_arm = ArmLeft(left_trigger, left_grasper)
     right_arm = ArmRight(right_trigger, right_grasper)
     return left_arm, right_arm
@@ -109,13 +107,13 @@ def build_two_arm() -> Tuple[Arm, Arm]:
 
 def build_left_arm():
     left_trigger = build_left_trigger(TRIGGER_NAME)
-    left_grasper = build_left_grasper(GRASPER_NAME)
+    left_grasper = build_left_grasper()
     left_arm = ArmLeft(left_trigger, left_grasper)
     return left_arm
 
 
 def build_right_arm():
     right_trigger = build_right_trigger(TRIGGER_NAME)
-    right_grasper = build_right_grasper(GRASPER_NAME)
+    right_grasper = build_right_grasper()
     right_arm = ArmRight(right_trigger, right_grasper)
     return right_arm
