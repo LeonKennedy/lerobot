@@ -14,7 +14,7 @@ else:
     TRIGGER_NAME = "COM3"
     GRASPER_NAME = "COM4"
     CAMERA_NAME = {"TOP": 0, "RIGHT": 2, "LEFT": 1}
-    BUTTON_NAME = "COM12"
+    BUTTON_MAP_KEY = "5"
 
 BAUDRATE = 115200  # 串口波特率，与CAN模块的串口波特率一致，（出厂默认为 115200，最高460800）
 
