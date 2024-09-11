@@ -8,21 +8,22 @@
 @time: 2024/9/10 17:38
 @desc:
 """
-
+import os.path
+import time
 from pathlib import Path
 import numpy
 import torch
 
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
-from lerobot.devices import build_right_arm
+from lerobot.devices import build_right_arm, CameraGroup
+from lerobot.devices.utils import fps_wait
 
 right_arm = build_right_arm()
+right_arm.move_start_position(master=False)
+camera = CameraGroup()
 
-# Create a directory to store the video of the evaluation
-output_directory = Path("outputs/eval/example_pusht_diffusion")
-output_directory.mkdir(parents=True, exist_ok=True)
-
-pretrained_policy_path = "outputs/train/example_pusht_diffusion"
+pretrained_policy_path = "../outputs/train/example_pusht_diffusion"
+assert os.path.exists(pretrained_policy_path)
 policy = DiffusionPolicy.from_pretrained(pretrained_policy_path)
 policy.eval()
 
@@ -37,10 +38,8 @@ else:
     policy.diffusion.num_inference_steps = 10
 
 policy.to(device)
-
 # Reset the policy and environmens to prepare for rollout
 policy.reset()
-
 # Prepare to collect every rewards and all the frames of the episode,
 # from initial state to final state.
 rewards = []
@@ -52,12 +51,12 @@ step = 0
 done = False
 while not done:
     # Prepare observation for the policy running in Pytorch
-    state = torch.from_numpy(numpy.random.randn(7,))
-    image = torch.from_numpy(numpy.random.randn(3, 240, 320))
-
-    # Convert to float32 with image from channel first in [0,255]
-    # to channel last in [0,1]
-    state = state.to(torch.float32)
+    start = time.time()
+    puppet_state = right_arm.read_puppet_state()
+    img = camera.read_right()
+    state = torch.tensor(puppet_state, dtype=torch.float32)
+    image = torch.from_numpy(img)
+    image = torch.einsum('h w c -> c h w', image)
     image = image.to(torch.float32)
 
     # Send data tensors from CPU to GPU
@@ -81,7 +80,12 @@ while not done:
     # Prepare the action for the environment
     numpy_action = action.squeeze(0).to("cpu").numpy()
 
-    print(numpy_action)
+    fps_wait(15, start)
+    print("OUT:", numpy_action)
+    bit_width = 1 / (time.time() - start) / 2
+    right_angle, right_grasper = numpy_action[:6], numpy_action[6]
+    right_arm.puppet.move_to(right_angle, bit_width)
+    right_arm.grasper.set_angle(right_grasper)
     step += 1
 
 
