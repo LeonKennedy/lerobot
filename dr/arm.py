@@ -7,8 +7,8 @@ import sys
 from loguru import logger
 
 from .new_arm import build_master_and_puppet, Puppet, Master
-from .dx_trigger import build_trigger, Trigger
-from .grasper import Grasper, build_grasper
+from .dx_trigger import build_trigger, Trigger, build_left_trigger, build_right_trigger
+from .grasper import Grasper, build_grasper, build_left_grasper, build_right_grasper
 from .constants import COM_LEFT, COM_RIGHT, LEADERS_L, LEADERS_R, FOLLOWERS_L, FOLLOWERS_R, TRIGGER_NAME, GRASPER_NAME
 
 
@@ -79,7 +79,7 @@ class ArmLeft(Arm):
         super().__init__(m, p, trigger, grasper)
 
     def move_start_position(self):
-        start = [-35, 15, -78, -20, 90, 0-14]
+        start = [-35, 15, -78, -20, 90, 0 - 14]
         self.master.move_to1(start)
         time.sleep(2)
         self.puppet.move_to1(start)
@@ -105,3 +105,17 @@ def build_two_arm() -> Tuple[Arm, Arm]:
     left_arm = ArmLeft(left_trigger, left_grasper)
     right_arm = ArmRight(right_trigger, right_grasper)
     return left_arm, right_arm
+
+
+def build_left_arm():
+    left_trigger = build_left_trigger(TRIGGER_NAME)
+    left_grasper = build_left_grasper(GRASPER_NAME)
+    left_arm = ArmLeft(left_trigger, left_grasper)
+    return left_arm
+
+
+def build_right_arm():
+    right_trigger = build_right_trigger(TRIGGER_NAME)
+    right_grasper = build_right_grasper(GRASPER_NAME)
+    right_arm = ArmRight(right_trigger, right_grasper)
+    return right_arm

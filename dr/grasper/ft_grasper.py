@@ -90,3 +90,13 @@ class Grasper(Feite):
 def build_grasper(port_name: str):
     port_handler = PortHandler(port_name, 1_000_000)
     return Grasper(2, port_handler), Grasper(1, port_handler)
+
+
+def build_left_grasper(port_name: str):
+    port_handler = PortHandler(port_name, 1_000_000)
+    return Grasper(2, port_handler)
+
+
+def build_right_grasper(port_name: str):
+    port_handler = PortHandler(port_name, 1_000_000)
+    return Grasper(1, port_handler)
