@@ -21,6 +21,16 @@ class Arm:
         self.grasper = grasper
         # self.dr.disable_angle_speed_torque_state()
 
+    def read_puppet_state(self) -> List:
+        puppet_angle = self.get_puppet_angle()
+        grasper_angle = self.grasper.read_angle()
+        puppet_angle.append(grasper_angle)
+        return puppet_angle
+
+    def get_puppet_angle(self) -> List:
+        _, puppet_angle = self.get_all_angle()
+        return puppet_angle
+
     def get_all_angle(self) -> Tuple[List, List]:
         n = 0
         while 1:
@@ -90,10 +100,11 @@ class ArmRight(Arm):
         m, p = build_master_and_puppet(COM_RIGHT, master_ids=LEADERS_R, puppet_ids=FOLLOWERS_R)
         super().__init__(m, p, trigger, grasper)
 
-    def move_start_position(self):
+    def move_start_position(self, master=True):
         start = [32, 16, 90, -3, -86, -6]
-        self.master.move_to1(start)
-        time.sleep(2)
+        if master:
+            self.master.move_to1(start)
+            time.sleep(2)
         self.puppet.move_to1(start)
 
 
