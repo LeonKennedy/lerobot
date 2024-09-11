@@ -12,7 +12,7 @@ from pathlib import Path
 
 import torch
 
-from data.load_dataset import build_dataset
+from preprocess_data.load_dataset import build_dataset
 from lerobot.common.policies.diffusion.configuration_diffusion import DiffusionConfig
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
 from loguru import logger
@@ -24,7 +24,7 @@ output_directory.mkdir(parents=True, exist_ok=True)
 
 # Number of offline training steps (we'll only do offline training for this example.)
 # Adjust as you prefer. 5000 steps are needed to get something worth evaluating.
-training_steps = 5000
+training_steps = 9999
 device = torch.device("cuda")
 log_freq = 250
 
