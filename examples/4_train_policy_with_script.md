@@ -1,4 +1,4 @@
-This tutorial will explain the training script, how to use it, and particularly the use of Hydra to configure everything needed for the training run.
+  This tutorial will explain the training script, how to use it, and particularly the use of Hydra to configure everything needed for the training run.
 
 ## The training script
 

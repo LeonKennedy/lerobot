@@ -3,3 +3,4 @@ dir: ../data/cube
 state_dim: 7
 action_dim: 7
 image_shape: [3, 120, 160]
+camera_names: [TOP, RIGHT]

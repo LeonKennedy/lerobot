@@ -19,7 +19,7 @@ import keyboard
 from typing import List, Optional
 
 from devices.utils import fps_wait
-from devices.constants import FPS, BUTTON_MAP_KEY
+from devices.constants import BUTTON_MAP_KEY
 from devices import CameraGroup, build_two_arm, Arm, build_right_arm
 import hydra
 from omegaconf import DictConfig
@@ -34,9 +34,10 @@ class Recorder:
         self.arm_left = arm_left
         self.arm_right = arm_right
         self.camera = CameraGroup()
-        self.bit_width = 1 / FPS / 2
+        self.fps = self.cfg.fps
+        self.bit_width = 1 / self.fps / 2
         self.record_frequency = self.cfg.frequency
-        print("Moving FPS", FPS, "Recording FPS", FPS / self.record_frequency)
+        print("Moving FPS", self.fps, "Recording FPS", self.fps / self.record_frequency)
 
     def clear_uart(self):
         if self.arm_left:
@@ -102,10 +103,10 @@ class Recorder:
             episode["right_puppet"] = right_puppet_angles + [right_grasper_angle]
 
         tm1 = time.time()
-        episode["camera"] = self.camera.read(self.cfg.camera_names)
+        episode["camera"] = self.camera.read(self.cfg.task.camera_names)
         camera_cost = time.time() - tm1
 
-        fps_wait(FPS, start)
+        fps_wait(self.fps, start)
         duration = time.time() - start
         self.bit_width = 1 / duration / 2  # 时刻监控在 t>n * bit_time 情况下单条指令发送的时间
 
@@ -133,7 +134,8 @@ class Recorder:
 
         duration = time.time() - start_tm
         f = os.path.join(self.save_path, f"{datetime.now().strftime('%m_%d_%H_%M_%S')}.pkl")
-        pickle.dump({"data": episodes, "task": self.cfg.task.name}, open(f, 'wb'))
+        pickle.dump({"data": episodes, "task": self.cfg.task.name, "fps": self.fps / self.record_frequency},
+                    open(f, 'wb'))
         print(f'save to {f}, length {len(episodes)} FPS {round(len(episodes) / duration, 2)}')
 
     def follow(self):
@@ -155,7 +157,7 @@ def _change_running_flag(event):
     print(f"change running flag to {RUNNING_FLAG}")
 
 
-@hydra.main(version_base="1.2", config_name="record", config_path="configs/coffee")
+@hydra.main(version_base="1.2", config_name="coffee", config_path="configs/coffee")
 def run(cfg: DictConfig):
     print(cfg)
     arm_right = build_right_arm()
