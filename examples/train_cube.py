@@ -17,6 +17,7 @@ from lerobot.common.policies.diffusion.configuration_diffusion import DiffusionC
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
 from loguru import logger
 
+
 logger.info("start")
 # Create a directory to store the training checkpoint.
 output_directory = Path("outputs/train/example_pusht_diffusion")
@@ -24,7 +25,7 @@ output_directory.mkdir(parents=True, exist_ok=True)
 
 # Number of offline training steps (we'll only do offline training for this example.)
 # Adjust as you prefer. 5000 steps are needed to get something worth evaluating.
-training_steps = 9999
+training_steps = 29999
 device = torch.device("cuda")
 log_freq = 250
 
@@ -39,13 +40,13 @@ delta_timestamps = {
     # used to supervise the policy.
     "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
 }
-dataset, stats = build_dataset("cube")
+dataset, stats = build_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
 logger.info("created dataset")
 # Set up the the policy.
 # Policies are initialized with a configuration class, in this case `DiffusionConfig`.
 # For this example, no arguments need to be passed because the defaults are set up for PushT.
 # If you're doing something different, you will likely need to change at least some of the defaults.
-cfg = DiffusionConfig(input_shapes={"observation.image": [3, 240, 320], "observation.state": [7]}, output_shapes={"action": [7]})
+cfg = DiffusionConfig(input_shapes={"observation.image": [3, 120, 160], "observation.state": [7]}, output_shapes={"action": [7]})
 policy = DiffusionPolicy(cfg, dataset_stats=stats)
 policy.train()
 policy.to(device)
