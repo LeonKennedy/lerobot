@@ -1,15 +1,10 @@
 defaults:
   - _self_
-  - env: aloha
+  - task: cube
   - policy: diffusion
 
-hydra:
-  run:
-    # Set `dir` to where you would like to save all of the run outputs. If you run another training session
-    # with the same value for `dir` its contents will be overwritten unless you set `resume` to true.
-    dir: outputs/train/${now:%Y-%m-%d}/${now:%H-%M-%S}_${env.name}_${policy.name}_${hydra.job.name}
-  job:
-    name: default
+
+dir: outputs/train/${task.name}
 
 # Set `resume` to true to resume a previous run. In order for this to work, you will need to make sure
 # `hydra.run.dir` is the directory of an existing run with at least one checkpoint in it.
@@ -27,22 +22,21 @@ seed: ???
 # keys common between the datasets are kept. Each dataset gets and additional transform that inserts the
 # "dataset_index" into the returned item. The index mapping is made according to the order in which the
 # datsets are provided.
-dataset_repo_id: lerobot/pusht
-video_backend: pyav
+# video_backend: pyav
 
 training:
-  offline_steps: ???
+  offline_steps: 6000
 
   # Number of workers for the offline training dataloader.
   num_workers: 4
 
-  batch_size: ???
+  batch_size: 64
 
   eval_freq: ???
-  log_freq: 200
+  log_freq: 1000
   save_checkpoint: true
   # Checkpoint is saved every `save_freq` training iterations and after the last training step.
-  save_freq: ???
+  save_freq: 1000
 
   # Online training. Note that the online training loop adopts most of the options above apart from the
   # dataloader options. Unless otherwise specified.
