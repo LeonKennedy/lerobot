@@ -3,6 +3,9 @@ defaults:
   - task: cube
   - policy: diffusion
 
+fps: 30
+frequency: 2
+
 
 dir: outputs/train/${task.name}
 
