@@ -1,5 +1,5 @@
 import msvcrt
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 from .scservo_sdk import PortHandler, sms_sts, COMM_SUCCESS
 
@@ -87,16 +87,6 @@ class Grasper(Feite):
             print("%s" % self.packet_handler.getRxPacketError(scs_error))
 
 
-def build_grasper(port_name: str, servo_id: int):
+def build_grasper(port_name: str, servo_ids: List[int]):
     port_handler = PortHandler(port_name, 1_000_000)
-    return Grasper(2, port_handler), Grasper(1, port_handler)
-
-
-def build_left_grasper(port_name: str):
-    port_handler = PortHandler(port_name, 1_000_000)
-    return Grasper(2, port_handler)
-
-
-def build_right_grasper(port_name: str):
-    port_handler = PortHandler(port_name, 1_000_000)
-    return Grasper(1, port_handler)
+    return [Grasper(i, port_handler) for i in servo_ids]

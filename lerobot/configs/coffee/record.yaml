@@ -1,1 +1,9 @@
-task_name: jiji
+fps: 30
+frequency: 2
+camera_names: [TOP, RIGHT]
+
+
+defaults:
+  - _self_
+  - robot: right_arm
+  - task: cube
