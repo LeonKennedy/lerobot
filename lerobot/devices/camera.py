@@ -10,7 +10,7 @@
 """
 import time
 import concurrent.futures
-from typing import Dict
+from typing import Dict, List
 from tqdm.auto import tqdm
 
 import cv2
@@ -126,6 +126,12 @@ class CameraGroup:
 
     def read_right(self) -> np.ndarray:
         return self.read_one("RIGHT")
+
+    def read(self, names: List[str]):
+        out = {}
+        for n in names:
+            out[n] = self.read_one(n)
+        return out
 
     def show(self):
         while 1:
