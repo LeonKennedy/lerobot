@@ -1,13 +1,13 @@
 defaults:
   - _self_
   - task: cube
-  - policy: diffusion
+  - policy: act_koch_real
 
 fps: 30
 frequency: 2
 
 
-dir: outputs/train/${task.name}
+dir: outputs/train/${task.name}/${policy.name}
 
 # Set `resume` to true to resume a previous run. In order for this to work, you will need to make sure
 # `hydra.run.dir` is the directory of an existing run with at least one checkpoint in it.
