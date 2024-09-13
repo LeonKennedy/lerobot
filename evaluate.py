@@ -10,18 +10,14 @@
 """
 import os.path
 import time
-from pathlib import Path
 
 import hydra
-import numpy
 import torch
 from omegaconf import DictConfig
 
-from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
 from lerobot.common.policies.factory import make_policy
 from lerobot.devices import build_right_arm, CameraGroup
 from lerobot.devices.utils import fps_wait
-
 
 
 @hydra.main(version_base='1.2', config_name="coffee", config_path="lerobot/configs/coffee")
@@ -33,9 +29,7 @@ def run(cfg: DictConfig):
     right_arm.move_start_position(master=False)
     camera = CameraGroup()
 
-    pretrained_policy_path = os.path.join("..", cfg.dir)
-    assert os.path.exists(pretrained_policy_path)
-    policy = make_policy(hydra_cfg=cfg, pretrained_policy_name_or_path=str(pretrained_policy_path))
+    policy = make_policy(hydra_cfg=cfg, pretrained_policy_name_or_path=cfg.dir)
     policy.eval()
 
     # Check if GPU is available
