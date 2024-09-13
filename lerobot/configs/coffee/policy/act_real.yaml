@@ -62,7 +62,7 @@ policy:
 
   # Input / output structure.
   n_obs_steps: 1
-  chunk_size: 100 # chunk_size
+  chunk_size: 50 # chunk_size
   n_action_steps: 100
 
   input_shapes:

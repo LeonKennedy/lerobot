@@ -20,13 +20,7 @@ from loguru import logger
 _BASE_PATH = "/mnt/d4t/code/act_custom"
 
 
-class EpisodicDataset(torch.utils.data.Dataset):
-
-    def __init__(self, data: dict, obs_horizon: int, pred_horizon: int):
-        super(EpisodicDataset).__init__()
-        self.action, self.state, self.img_top, self.img_right = self._preprocess(data)
-        self.obs_horizon = obs_horizon
-        self.pred_horizon = pred_horizon
+class BaseDataset(torch.utils.data.Dataset):
 
     def _preprocess(self, data):
         master = []
@@ -46,26 +40,36 @@ class EpisodicDataset(torch.utils.data.Dataset):
         image_top = np.moveaxis(image_top, -1, 1)
         return np.stack(master), np.stack(puppet), image_top, image_right
 
+
+class EpisodicDataset(BaseDataset):
+
+    def __init__(self, data: dict, obs_horizon: int, pred_horizon: int):
+        super(EpisodicDataset).__init__()
+        self.action, self.state, self.img_top, self.img_right = self._preprocess(data)
+        self.obs_horizon = obs_horizon
+        self.pred_horizon = pred_horizon
+
     def __len__(self) -> int:
         # return self.data['qpos'].shape[0] - 20
         return 10
 
     def __getitem__(self, idx):
-        idx = np.random.randint(0, self.action.shape[0] - int(self.pred_horizon * 0.5))
+        idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
         img_top = self.img_top[idx: idx + self.obs_horizon]
         img_right = self.img_right[idx: idx + self.obs_horizon]
 
         state = self.state[idx: idx + self.obs_horizon]
 
+        action_data = self.state
         is_pad = np.zeros(self.pred_horizon)
         action_idx = idx + self.obs_horizon - 1
-        if idx + self.obs_horizon + self.pred_horizon > self.action.shape[0]:
-            padding_action = np.zeros((self.pred_horizon, self.action.shape[1]), dtype=np.float32)
-            actual_len = self.action.shape[0] - action_idx
-            padding_action[:actual_len] = self.action[action_idx:]
+        if idx + self.obs_horizon + self.pred_horizon > action_data.shape[0]:
+            padding_action = np.zeros((self.pred_horizon, action_data.shape[1]), dtype=np.float32)
+            actual_len = action_data.shape[0] - action_idx
+            padding_action[:actual_len] = action_data[action_idx:]
             is_pad[actual_len:] = 1
         else:
-            padding_action = self.action[action_idx: action_idx + self.pred_horizon]
+            padding_action = action_data[action_idx: action_idx + self.pred_horizon]
 
         out = {
             'observation.images.top': img_top.astype(np.float32),  # (B,obs,c,h,w)
@@ -78,6 +82,44 @@ class EpisodicDataset(torch.utils.data.Dataset):
 
     def add_noise(self, pos):
         return pos + np.random.normal(0, 0.01, pos.shape)
+
+
+class EpisodicActDataset(BaseDataset):
+
+    def __init__(self, data: dict, n_action: int):
+        super(EpisodicDataset).__init__()
+        self.action, self.state, self.img_top, self.img_right = self._preprocess(data)
+        self.pred_horizon = n_action
+
+    def __len__(self) -> int:
+        # return self.data['qpos'].shape[0] - 20
+        return 10
+
+    def __getitem__(self, idx):
+        idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
+        img_top = self.img_top[idx]
+        img_right = self.img_right[idx]
+        state = self.state[idx]
+
+        action_data = self.state
+        is_pad = np.zeros(self.pred_horizon)
+        action_idx = idx + 1
+        if action_idx + self.pred_horizon > action_data.shape[0]:
+            padding_action = np.zeros((self.pred_horizon, action_data.shape[1]), dtype=np.float32)
+            actual_len = action_data.shape[0] - action_idx
+            padding_action[:actual_len] = action_data[action_idx:]
+            is_pad[actual_len:] = 1
+        else:
+            padding_action = action_data[action_idx: action_idx + self.pred_horizon]
+
+        out = {
+            'observation.images.top': img_top.astype(np.float32),  # (B,obs,c,h,w)
+            'observation.images.right': img_right.astype(np.float32),
+            'observation.state': state.astype(np.float32),  # (B,obs,dim)
+            'action': padding_action.astype(np.float32),  # (B,pre,dim)
+            'action_is_pad': is_pad.astype(np.bool_)
+        }
+        return out
 
 
 def _get_data_stats(data):
@@ -127,6 +169,18 @@ def build_dataset(path: str, obs_horizon: int = 2, pred_horizon: int = 16):
     for i in glob.glob(os.path.join(path, "*.pkl")):
         data = pickle.load(open(i, 'rb'))
         ed = EpisodicDataset(data["data"], obs_horizon, pred_horizon)
+        out.append(ed)
+    logger.debug("finish concat dataset")
+    stats = get_stats(out)
+    print(stats)
+    return torch.utils.data.ConcatDataset(out), stats
+
+
+def build_act_dataset(path: str, n_action: int):
+    out = []
+    for i in glob.glob(os.path.join(path, "*.pkl")):
+        data = pickle.load(open(i, 'rb'))
+        ed = EpisodicActDataset(data["data"], n_action)
         out.append(ed)
     logger.debug("finish concat dataset")
     stats = get_stats(out)

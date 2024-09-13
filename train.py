@@ -13,7 +13,7 @@ from loguru import logger
 import hydra
 import torch
 from omegaconf import DictConfig, OmegaConf
-from preprocess_data.load_dataset import build_dataset
+from preprocess_data.load_dataset import build_dataset, build_act_dataset
 from lerobot.common.policies.factory import make_policy
 from lerobot.common.utils.utils import (
     format_big_number,
@@ -83,21 +83,13 @@ def run(cfg: DictConfig):
 
     device = get_safe_torch_device(cfg.device, log=True)
 
-    # Set up the dataset.
-    # delta_timestamps = {
-    #     # Load the previous image and state at -0.1 seconds before current frame,
-    #     # then load current image and state corresponding to 0.0 second.
-    #     "observation.image": [-0.1, 0.0],
-    #     "observation.state": [-0.1, 0.0],
-    #     # Load the previous action (-0.1), the next action to be executed (0.0),
-    #     # and 14 future actions with a 0.1 seconds spacing. All these actions will be
-    #     # used to supervise the policy.
-    #     "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
-    # }
-    dataset, stats = build_dataset("/mnt/d4t/data/lerobot/cube",
-                                   cfg.policy.n_obs_steps,
-                                   cfg.policy.horizon)
-    logger.info("created dataset")
+    if cfg.policy.name == "act":
+        dataset, stats = build_act_dataset("/mnt/d4t/data/lerobot/cube", cfg.policy.n_action_steps)
+    elif cfg.policy.name == "diffusion":
+        dataset, stats = build_dataset("/mnt/d4t/data/lerobot/cube",
+                                       cfg.policy.n_obs_steps,
+                                       cfg.policy.horizon)
+    logger.info(f"loaded dataset: {len(dataset)}")
     policy = make_policy(hydra_cfg=cfg, dataset_stats=stats,
                          pretrained_policy_name_or_path=str(output_directory) if cfg.resume else None)
     policy.train()
@@ -128,6 +120,8 @@ def run(cfg: DictConfig):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+            if lr_scheduler is not None:
+                lr_scheduler.step()
 
             if step % cfg.training.log_freq == 0:
                 logger.debug(f"step: {step} loss: {loss.item():.3f}")

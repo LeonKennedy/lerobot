@@ -26,7 +26,7 @@ print("List of available datasets:")
 pprint(lerobot.available_datasets)
 
 # Let's take one for this example
-repo_id = "lerobot/pusht"
+repo_id = "lerobot/aloha_static_vinh_cup"
 
 # You can easily load a dataset from a Hugging Face repository
 dataset = LeRobotDataset(repo_id)
