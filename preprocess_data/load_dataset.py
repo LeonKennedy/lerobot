@@ -92,11 +92,10 @@ class EpisodicActDataset(BaseDataset):
         self.pred_horizon = n_action
 
     def __len__(self) -> int:
-        # return self.data['qpos'].shape[0] - 20
-        return 10
+        return self.state.shape[0] - 20
 
     def __getitem__(self, idx):
-        idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
+        # idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
         img_top = self.img_top[idx]
         img_right = self.img_right[idx]
         state = self.state[idx]
