@@ -3,6 +3,7 @@ defaults:
   - task: cube
   - policy: act_koch_real
 
+# record
 fps: 30
 frequency: 2
 

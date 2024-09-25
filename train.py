@@ -82,6 +82,8 @@ def run(cfg: DictConfig):
     output_directory.mkdir(parents=True, exist_ok=True)
 
     device = get_safe_torch_device(cfg.device, log=True)
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.matmul.allow_tf32 = True
 
     if cfg.policy.name == "act":
         dataset, stats = build_act_dataset("/mnt/d4t/data/lerobot/cube", cfg.policy.n_action_steps)
@@ -90,7 +92,8 @@ def run(cfg: DictConfig):
                                        cfg.policy.n_obs_steps,
                                        cfg.policy.horizon)
     logger.info(f"loaded dataset: {len(dataset)}")
-    policy = make_policy(hydra_cfg=cfg, dataset_stats=stats,
+    policy = make_policy(hydra_cfg=cfg,
+                         dataset_stats= stats if not cfg.resume else None,
                          pretrained_policy_name_or_path=str(output_directory) if cfg.resume else None)
     policy.train()
     policy.to(device)

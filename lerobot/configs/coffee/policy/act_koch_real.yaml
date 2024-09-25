@@ -26,14 +26,14 @@ seed: 1000
 #    std: [[[0.229]], [[0.224]], [[0.225]]]  # (c,1,1)
 
 training:
-  offline_steps: 80000
+  offline_steps: 999999
   online_steps: 0
   eval_freq: -1
-  save_freq: 1000
+  save_freq: 2000
   log_freq: 1000
   save_checkpoint: true
 
-  batch_size: 32
+  batch_size: 48
   lr: 1e-5
   lr_backbone: 1e-5
   weight_decay: 1e-4
@@ -98,4 +98,4 @@ policy:
 
   # Training and loss computation.
   dropout: 0.1
-  kl_weight: 10.0
+  kl_weight: 20.0
