@@ -8,6 +8,7 @@
 @time: 2024/9/12 11:40
 @desc:
 """
+import os
 from pathlib import Path
 from loguru import logger
 import hydra
@@ -85,13 +86,14 @@ def run(cfg: DictConfig):
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
 
+    data_path = cfg.data_path
     if cfg.policy.name == "act":
-        dataset, stats = build_act_dataset("/mnt/d4t/data/lerobot/cube", cfg.policy.n_action_steps)
+        dataset, stats = build_act_dataset(data_path, cfg.policy.n_action_steps)
     elif cfg.policy.name == "diffusion":
-        dataset, stats = build_dataset("/mnt/d4t/data/lerobot/cube",
+        dataset, stats = build_dataset(data_path,
                                        cfg.policy.n_obs_steps,
                                        cfg.policy.horizon)
-    logger.info(f"loaded dataset: {len(dataset)}")
+    logger.info(f"loaded dataset: {data_path} {len(dataset)}")
     policy = make_policy(hydra_cfg=cfg,
                          dataset_stats= stats if not cfg.resume else None,
                          pretrained_policy_name_or_path=str(output_directory) if cfg.resume else None)

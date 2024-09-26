@@ -1,8 +1,10 @@
+# task cube, puzzle
 defaults:
   - _self_
-  - task: cube
+  - task: puzzle
   - policy: act_koch_real
 
+data_path: /mnt/d4t/data/lerobot/${task.name}
 # record
 fps: 30
 frequency: 2
