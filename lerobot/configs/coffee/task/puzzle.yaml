@@ -1,5 +1,5 @@
 name: put_puzzle
-record_dir: ../data/${name}
+record_dir: ../data/${task.name}
 state_dim: 7
 action_dim: 7
 image_shape: [3, 120, 160]

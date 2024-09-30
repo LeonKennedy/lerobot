@@ -28,7 +28,7 @@ from omegaconf import DictConfig
 class Recorder:
 
     def __init__(self, cfg: DictConfig, arm_left: Optional[Arm] = None, arm_right: Optional[Arm] = None):
-        self.save_path = os.path.join(cfg.task.dir, datetime.now().strftime("%m_%d"))
+        self.save_path = os.path.join(cfg.task.record_dir, datetime.now().strftime("%m_%d"))
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
         self.cfg = cfg
         self.arm_left = arm_left
