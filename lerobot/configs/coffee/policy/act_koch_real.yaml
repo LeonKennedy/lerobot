@@ -30,7 +30,7 @@ training:
   online_steps: 0
   eval_freq: -1
   save_freq: 2000
-  log_freq: 1000
+  log_freq: 500
   save_checkpoint: true
 
   batch_size: 48
@@ -53,8 +53,8 @@ policy:
 
   # Input / output structure.
   n_obs_steps: 1
-  chunk_size: 50
-  n_action_steps: 50
+  chunk_size: ${task.chunk_size}
+  n_action_steps: ${task.n_action_steps}
 
   input_shapes:
     # TODO(rcadene, alexander-soare): add variables for height and width from the dataset/env?
