@@ -92,7 +92,8 @@ class EpisodicActDataset(BaseDataset):
         self.pred_horizon = n_action
 
     def __len__(self) -> int:
-        return self.state.shape[0] - 20
+        l = self.state.shape[0] - 20
+        return max(l, 1)
 
     def __getitem__(self, idx):
         # idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
@@ -183,7 +184,10 @@ def build_act_dataset(path: str, n_action: int):
         out.append(ed)
     logger.debug("finish concat dataset")
     stats = get_stats(out)
-    print(stats)
+    print("action:\n", stats['action'])
+    print("state:\n", stats['observation.state'])
+    print(stats['observation.images.top'])
+    print(stats['observation.images.right'])
     return torch.utils.data.ConcatDataset(out), stats
 
 
