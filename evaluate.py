@@ -16,7 +16,7 @@ import torch
 from omegaconf import DictConfig
 
 from lerobot.common.policies.factory import make_policy
-from lerobot.devices import build_right_arm, CameraGroup
+from lerobot.devices import build_right_arm, CameraGroup, build_robot
 from lerobot.devices.utils import fps_wait
 
 
@@ -25,8 +25,8 @@ def run(cfg: DictConfig):
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
 
-    right_arm = build_right_arm()
-    right_arm.move_start_position(master=False)
+    robot = build_robot(cfg.task.action_dim)
+    robot.move_start_position(master=False)
     camera = CameraGroup()
 
     policy = make_policy(hydra_cfg=cfg, pretrained_policy_name_or_path=cfg.dir)
@@ -48,7 +48,7 @@ def run(cfg: DictConfig):
     while not done:
         # Prepare observation for the policy running in Pytorch
         start = time.time()
-        puppet_state = right_arm.read_puppet_state()
+        puppet_state = robot.read_puppet_state()
         state = torch.tensor(puppet_state, dtype=torch.float32)
 
         img = camera.read(['TOP', 'RIGHT'])
@@ -82,9 +82,7 @@ def run(cfg: DictConfig):
         fps_wait(10, start)
         bit_width = 1 / (time.time() - start) / 2
         print("OUT:", numpy_action, bit_width)
-        right_angle, right_grasper = numpy_action[:6], numpy_action[6]
-        right_arm.puppet.move_to(right_angle, bit_width)
-        right_arm.grasper.set_angle(right_grasper)
+        robot.set_state(numpy_action, bit_width)
         step += 1
 
 

@@ -20,19 +20,20 @@ from typing import List, Optional
 
 from devices.utils import fps_wait
 from devices.constants import BUTTON_MAP_KEY
-from devices import CameraGroup, build_two_arm, Arm, build_right_arm
+from devices import CameraGroup, build_two_arm, Arm, build_right_arm, Robot
 import hydra
 from omegaconf import DictConfig
+
+from lerobot.devices import build_robot
 
 
 class Recorder:
 
-    def __init__(self, cfg: DictConfig, arm_left: Optional[Arm] = None, arm_right: Optional[Arm] = None):
+    def __init__(self, cfg: DictConfig, robot: Robot):
         self.save_path = os.path.join(cfg.task.record_dir, datetime.now().strftime("%m_%d"))
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
         self.cfg = cfg
-        self.arm_left = arm_left
-        self.arm_right = arm_right
+        self.robot = robot
         self.camera = CameraGroup()
         self.fps = self.cfg.fps
         self.bit_width = 1 / self.fps / 2
@@ -40,37 +41,17 @@ class Recorder:
         print("Moving FPS", self.fps, "Recording FPS", self.fps / self.record_frequency)
 
     def clear_uart(self):
-        if self.arm_left:
-            self.arm_left.clear_uart()
-        if self.arm_right:
-            self.arm_right.clear_uart()
-
-    def move_start(self):
-        if self.arm_left:
-            self.arm_left.move_start_position()
-        if self.arm_right:
-            self.arm_right.move_start_position()
-
-    def master_to_puppet(self):
-        if self.arm_left:
-            lm, lp = self.arm_left.get_all_angle()
-            self.arm_left.master.move_to1(lp)
-        if self.arm_right:
-            rm, rp = self.arm_right.get_all_angle()
-            self.arm_right.master.move_to1(rp)
+        self.robot.clear_uart()
 
     def set_end_torque_zero(self):
-        if self.arm_left:
-            self.arm_left.master.set_end_torque_zero()
-        if self.arm_right:
-            self.arm_right.master.set_end_torque_zero()
+        self.robot.set_end_torque_zero()
 
     def record(self):
         k = input('[DO FIRST]\n1. two arm move to start position?\n2. master move to puppet?(q)')
         if k == '1':
-            self.move_start()
+            self.robot.move_start_position()
         elif k == '2':
-            self.master_to_puppet()
+            self.robot.move_master_to_puppet()
         else:
             pass
 
@@ -90,17 +71,7 @@ class Recorder:
 
     def _record_episode(self, info=True):
         start = time.time()
-        episode = {}
-        if self.arm_left:
-            left_master_angles, left_trigger_angle, left_puppet_angles, left_grasper_angle = self.arm_left.follow(
-                self.bit_width)
-            episode["left_master"] = left_master_angles + [left_trigger_angle]
-            episode["left_puppet"] = left_puppet_angles + [left_grasper_angle]
-        if self.arm_right:
-            right_master_angles, right_trigger_angle, right_puppet_angles, right_grasper_angle = self.arm_right.follow(
-                self.bit_width)
-            episode["right_master"] = right_master_angles + [right_trigger_angle]
-            episode["right_puppet"] = right_puppet_angles + [right_grasper_angle]
+        episode = self.robot.follow(self.bit_width)
 
         tm1 = time.time()
         episode["camera"] = self.camera.read(self.cfg.task.camera_names)
@@ -142,10 +113,7 @@ class Recorder:
         while RUNNING_FLAG:
             self._record_episode(False)
 
-        if self.arm_left:
-            self.arm_left.lock()
-        if self.arm_right:
-            self.arm_right.lock()
+        self.robot.lock()
 
 
 RUNNING_FLAG = False
@@ -160,8 +128,8 @@ def _change_running_flag(event):
 @hydra.main(version_base="1.2", config_name="coffee", config_path="configs/coffee")
 def run(cfg: DictConfig):
     print(cfg)
-    arm_right = build_right_arm()
-    r = Recorder(cfg, arm_right=arm_right)
+    robot = build_robot(cfg.task.action_dim)
+    r = Recorder(cfg, robot)
     r.record()
 
 
