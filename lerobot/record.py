@@ -9,22 +9,17 @@
 @desc:
 """
 import pickle
-import sys
 import os
 import time
 from datetime import datetime
 from pathlib import Path
 
 import keyboard
-from typing import List, Optional
-
 from devices.utils import fps_wait
 from devices.constants import BUTTON_MAP_KEY
-from devices import CameraGroup, build_two_arm, Arm, build_right_arm, Robot
+from devices import CameraGroup, Robot, build_robot
 import hydra
 from omegaconf import DictConfig
-
-from lerobot.devices import build_robot
 
 
 class Recorder:
@@ -49,7 +44,7 @@ class Recorder:
     def record(self):
         k = input('[DO FIRST]\n1. two arm move to start position?\n2. master move to puppet?(q)')
         if k == '1':
-            self.robot.move_start_position()
+            self.robot.move_start_position(True)
         elif k == '2':
             self.robot.move_master_to_puppet()
         else:
