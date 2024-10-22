@@ -9,6 +9,10 @@
 @desc:
 """
 import pickle
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
 import os
 import time
 from datetime import datetime
@@ -17,9 +21,11 @@ from pathlib import Path
 import keyboard
 from devices.utils import fps_wait
 from devices.constants import BUTTON_MAP_KEY
-from devices import CameraGroup, Robot, build_robot
+from devices import CameraGroup, build_two_arm, Arm, build_right_arm, Robot
 import hydra
 from omegaconf import DictConfig
+
+from lerobot.devices import build_robot
 
 
 class Recorder:

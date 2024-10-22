@@ -73,8 +73,13 @@ class Arm:
         print(self.__class__, "lock at", master_angles)
 
     @abc.abstractmethod
+<<<<<<< HEAD
     def move_start_position(self, master: bool):
         raise NotImplementedError
+=======
+    def move_start_position(self):
+        pass
+>>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
 
     def clear_uart(self):
         self.dr.uart.flushInput()
@@ -86,11 +91,18 @@ class ArmLeft(Arm):
         m, p = build_master_and_puppet(COM_LEFT, master_ids=LEADERS_L, puppet_ids=FOLLOWERS_L)
         super().__init__(m, p, trigger, grasper)
 
+<<<<<<< HEAD
     def move_start_position(self, master: bool = True):
         start = [-35, 15, -78, -20, 90, 0 - 14]
         if master:
             self.master.move_to1(start)
             time.sleep(2)
+=======
+    def move_start_position(self):
+        start = [-35, 15, -78, -20, 90, 0 - 14]
+        self.master.move_to1(start)
+        time.sleep(2)
+>>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
         self.puppet.move_to1(start)
 
 

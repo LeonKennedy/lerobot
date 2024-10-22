@@ -91,6 +91,7 @@ class SingleArmRobot(Robot):
 
 
 class TwoArmRobot(Robot):
+<<<<<<< HEAD
 
     def __init__(self):
         self.arm_left, self.arm_right = build_two_arm()
@@ -104,6 +105,21 @@ class TwoArmRobot(Robot):
         self.arm_left.master.move_to1(lp)
         rm, rp = self.arm_right.get_all_angle()
         self.arm_right.master.move_to1(rp)
+=======
+    def move_start_position(self):
+        if self.arm_left:
+            self.arm_left.move_start_position()
+        if self.arm_right:
+            self.arm_right.move_start_position()
+
+    def move_master_to_puppet(self):
+        if self.arm_left:
+            lm, lp = self.arm_left.get_all_angle()
+            self.arm_left.master.move_to1(lp)
+        if self.arm_right:
+            rm, rp = self.arm_right.get_all_angle()
+            self.arm_right.master.move_to1(rp)
+>>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
 
     def clear_uart(self):
         if self.arm_left:
