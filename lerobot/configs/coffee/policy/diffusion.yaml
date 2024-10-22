@@ -77,7 +77,7 @@ policy:
   # Architecture / modeling.
   # Vision backbone.
   vision_backbone: resnet18
-  crop_shape: [84, 84]
+  crop_shape: [120, 160]
   crop_is_random: True
   pretrained_backbone_weights: null
   use_group_norm: True
@@ -99,7 +99,7 @@ policy:
   clip_sample_range: 1.0
 
   # Inference
-  num_inference_steps: 90  # if not provided, defaults to `num_train_timesteps`
+  num_inference_steps: 50  # if not provided, defaults to `num_train_timesteps`
 
   # Loss computation
   do_mask_loss_for_padding: false
