@@ -24,6 +24,7 @@ from lerobot.devices.utils import fps_wait
 def run(cfg: DictConfig):
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
+    cfg.policy.noise_scheduler_type = "DDIM"
 
     robot = build_robot(cfg.task.action_dim)
     robot.move_start_position(master=False)
@@ -79,7 +80,7 @@ def run(cfg: DictConfig):
         # Prepare the action for the environment
         numpy_action = action.squeeze(0).to("cpu").numpy()
 
-        fps_wait(10, start)
+        fps_wait(15, start)
         bit_width = 1 / (time.time() - start) / 2
         print("OUT:", numpy_action, bit_width)
         robot.set_state(numpy_action, bit_width)

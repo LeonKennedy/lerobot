@@ -9,10 +9,6 @@
 @desc:
 """
 import pickle
-<<<<<<< HEAD
-=======
-import sys
->>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
 import os
 import time
 from datetime import datetime

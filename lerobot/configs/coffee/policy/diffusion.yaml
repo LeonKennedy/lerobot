@@ -56,7 +56,7 @@ policy:
   # Input / output structure.
   n_obs_steps: 2
   horizon: 16
-  n_action_steps: 8
+  n_action_steps: 10
 
   input_shapes:
     # TODO(rcadene, alexander-soare): add variables for height and width from the dataset/env?
@@ -99,7 +99,7 @@ policy:
   clip_sample_range: 1.0
 
   # Inference
-  num_inference_steps: 50  # if not provided, defaults to `num_train_timesteps`
+  num_inference_steps: 30  # if not provided, defaults to `num_train_timesteps`
 
   # Loss computation
   do_mask_loss_for_padding: false

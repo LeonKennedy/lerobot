@@ -2,11 +2,7 @@
 defaults:
   - _self_
   - task: puzzle
-<<<<<<< HEAD
   - policy: diffusion # act_koch_real
-=======
-  - policy: act_koch_real
->>>>>>> ab4aef299fdd10fd794537cc4a505b5af0719eac
 
 data_path: /mnt/d4t/data/lerobot/${task.name}
 # record
