@@ -16,7 +16,7 @@ from tqdm.auto import tqdm
 import cv2
 import numpy as np
 
-from .constants import CAMERA_NAME, IMAGE_W, IMAGE_H
+from .constants import CAMERA_NAME
 
 
 def check_camera():
@@ -75,11 +75,11 @@ def show():
     cv2.destroyAllWindows()
 
 
-def _init_camera(name: str, i: int):
+def _init_camera(name: str, i: int, h: int, w: int):
     cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, IMAGE_W)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, IMAGE_H)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
     assert cap.isOpened()
     print(name, cap.get(cv2.CAP_PROP_FOURCC), cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     return cap
@@ -87,9 +87,14 @@ def _init_camera(name: str, i: int):
 
 class CameraGroup:
 
-    def __init__(self):
-        self.caps = {name: _init_camera(name, i) for name, i in CAMERA_NAME.items()}
-        self.image_size = (IMAGE_H, IMAGE_W, 3)
+    def __init__(self, camera_names, h, w):
+        caps = {}
+        self.camera_names = camera_names
+        for name in camera_names:
+            cid = CAMERA_NAME[name]
+            caps[name] = _init_camera(name, cid, h, w)
+        self.caps = caps
+        self.resize_size = (w, h)
         # self.tasks = {name: Thread(target=cap.read) for name, cap in self.caps.items()}
 
     def read_async(self) -> Dict[str, np.ndarray]:
@@ -107,25 +112,22 @@ class CameraGroup:
             ret, img = cap.read()
             assert ret, f"{name} error"
             if name in ("LEFT", "RIGHT"):
-                results[name] = cv2.resize(img, (IMAGE_W, IMAGE_H))
+                results[name] = cv2.resize(img, self.resize_size)
             else:
                 results[name] = img
         return results
 
     def read_stack(self) -> np.ndarray:
         imgs = self.read_sync()
-        img = np.stack([imgs['TOP'], imgs["LEFT"], imgs["RIGHT"]])
+        img = np.stack([imgs[k] for k in self.camera_names])
         return img
 
     def read_one(self, name: str):
         cap = self.caps[name]
         ret, img = cap.read()
         if name in ("LEFT", "RIGHT"):
-            img = cv2.resize(img, (IMAGE_W, IMAGE_H))
+            img = cv2.resize(img, self.resize_size)
         return img
-
-    def read_right(self) -> np.ndarray:
-        return self.read_one("RIGHT")
 
     def read(self, names: List[str]):
         out = {}

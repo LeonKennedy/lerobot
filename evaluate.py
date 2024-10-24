@@ -29,7 +29,7 @@ def run(cfg: DictConfig):
 
     robot = build_robot(cfg.task.action_dim)
     robot.move_start_position(master=False)
-    camera = CameraGroup()
+    camera = CameraGroup(cfg.task.camera_names, cfg.task.image_shape[1], cfg.task.image_shape[2])
 
     policy = make_policy(hydra_cfg=cfg, pretrained_policy_name_or_path=cfg.dir)
     policy.eval()
