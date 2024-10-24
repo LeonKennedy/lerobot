@@ -24,7 +24,8 @@ from lerobot.devices.utils import fps_wait
 def run(cfg: DictConfig):
     torch.backends.cudnn.benchmark = True
     torch.backends.cuda.matmul.allow_tf32 = True
-    cfg.policy.noise_scheduler_type = "DDIM"
+    if hasattr(cfg.policy, "noise_scheduler_type"):
+        cfg.policy.noise_scheduler_type = "DDIM"
 
     robot = build_robot(cfg.task.action_dim)
     robot.move_start_position(master=False)
