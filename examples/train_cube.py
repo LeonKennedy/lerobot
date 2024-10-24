@@ -12,7 +12,7 @@ from pathlib import Path
 
 import torch
 
-from preprocess_data.load_dataset import build_dataset
+from preprocess_data.load_dataset import build_diffusion_dataset
 from lerobot.common.policies.diffusion.configuration_diffusion import DiffusionConfig
 from lerobot.common.policies.diffusion.modeling_diffusion import DiffusionPolicy
 from loguru import logger
@@ -40,7 +40,7 @@ delta_timestamps = {
     # used to supervise the policy.
     "action": [-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
 }
-dataset, stats = build_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
+dataset, stats = build_diffusion_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
 logger.info("created dataset")
 # Set up the the policy.
 # Policies are initialized with a configuration class, in this case `DiffusionConfig`.

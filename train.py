@@ -14,7 +14,7 @@ from loguru import logger
 import hydra
 import torch
 from omegaconf import DictConfig, OmegaConf
-from preprocess_data.load_dataset import build_dataset, build_act_dataset
+from preprocess_data.load_dataset import build_diffusion_dataset, build_act_dataset
 from lerobot.common.policies.factory import make_policy
 from lerobot.common.utils.utils import (
     format_big_number,
@@ -90,9 +90,9 @@ def run(cfg: DictConfig):
     if cfg.policy.name == "act":
         dataset, stats = build_act_dataset(data_path, cfg.policy.n_action_steps)
     elif cfg.policy.name == "diffusion":
-        dataset, stats = build_dataset(data_path,
-                                       cfg.policy.n_obs_steps,
-                                       cfg.policy.horizon)
+        dataset, stats = build_diffusion_dataset(data_path,
+                                                 cfg.policy.n_obs_steps,
+                                                 cfg.policy.horizon)
     logger.info(f"loaded dataset: {data_path} {len(dataset)}")
     policy = make_policy(hydra_cfg=cfg,
                          dataset_stats= stats if not cfg.resume else None,

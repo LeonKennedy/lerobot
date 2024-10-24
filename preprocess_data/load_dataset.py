@@ -62,14 +62,13 @@ class EpisodicDataset(BaseDataset):
 
         action_data = self.state
         is_pad = np.zeros(self.pred_horizon)
-        action_idx = idx + self.obs_horizon - 1
-        if idx + self.obs_horizon + self.pred_horizon > action_data.shape[0]:
+        if idx + self.pred_horizon > action_data.shape[0]:
             padding_action = np.zeros((self.pred_horizon, action_data.shape[1]), dtype=np.float32)
-            actual_len = action_data.shape[0] - action_idx
-            padding_action[:actual_len] = action_data[action_idx:]
+            actual_len = action_data.shape[0] - idx
+            padding_action[:actual_len] = action_data[idx:]
             is_pad[actual_len:] = 1
         else:
-            padding_action = action_data[action_idx: action_idx + self.pred_horizon]
+            padding_action = action_data[idx: idx + self.pred_horizon]
 
         out = {
             'observation.images.top': img_top.astype(np.float32),  # (B,obs,c,h,w)
@@ -164,7 +163,7 @@ def get_stats(data: List[EpisodicDataset]):
     return out
 
 
-def build_dataset(path: str, obs_horizon: int = 2, pred_horizon: int = 16):
+def build_diffusion_dataset(path: str, obs_horizon: int = 2, pred_horizon: int = 16):
     out = []
     for i in glob.glob(os.path.join(path, "*.pkl")):
         data = pickle.load(open(i, 'rb'))
@@ -192,5 +191,5 @@ def build_act_dataset(path: str, n_action: int):
 
 
 if __name__ == '__main__':
-    ds = build_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
+    ds = build_diffusion_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
     print(ds[0])
