@@ -17,7 +17,7 @@ from pathlib import Path
 import keyboard
 from devices.utils import fps_wait
 from devices.constants import BUTTON_MAP_KEY
-from devices import CameraGroup, build_two_arm, Arm, build_right_arm, Robot
+from devices import CameraGroup, XRobot
 import hydra
 from omegaconf import DictConfig
 
@@ -26,62 +26,46 @@ from lerobot.devices import build_robot
 
 class Recorder:
 
-    def __init__(self, cfg: DictConfig, robot: Robot):
+    def __init__(self, cfg: DictConfig, robot: XRobot):
         self.save_path = os.path.join(cfg.task.record_dir, datetime.now().strftime("%m_%d"))
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
         self.cfg = cfg
         self.robot = robot
         self.camera = CameraGroup(cfg.task.camera_names, cfg.task.image_shape[1], cfg.task.image_shape[2])
         self.fps = self.cfg.fps
-        self.bit_width = 1 / self.fps / 2
         self.record_frequency = self.cfg.frequency
         print("Moving FPS", self.fps, "Recording FPS", self.fps / self.record_frequency)
+        self.robot.enable_robot()
 
-    def clear_uart(self):
-        self.robot.clear_uart()
-
-    def set_end_torque_zero(self):
-        self.robot.set_end_torque_zero()
+    def __del__(self):
+        self.robot.robot_follow_disable()
+        time.sleep(1)
+        self.robot.disable_robot()
 
     def record(self):
-        k = input('[DO FIRST]\n1. two arm move to start position?\n2. master move to puppet?(q)')
-        if k == '1':
-            self.robot.move_start_position(True)
-        elif k == '2':
-            self.robot.move_master_to_puppet()
-        else:
-            pass
-
-        self.set_end_torque_zero()
-        print("move done, set end torque zero..")
-        self.clear_uart()
         i = 0
-        global RUNNING_FLAG
-        keyboard.on_press_key(BUTTON_MAP_KEY, _change_running_flag)
+        print("enable follow?")
+        keyboard.wait(BUTTON_MAP_KEY)
+
+        keyboard.on_press_key("num lock", _change_running_flag)
+        self.robot.robot_follow_enable()
         while True:
             self.record_one()
             i += 1
-            RUNNING_FLAG = True
-            self.follow()
             print('next episode？:', i)
-            self.clear_uart()
 
-    def _record_episode(self, info=True):
+    def _record_episode(self):
         start = time.time()
-        episode = self.robot.follow(self.bit_width)
+        camera = self.camera.read(self.cfg.task.camera_names)
+        action, _, master_gripper = self.robot.robot_get_master_angle()
+        angles, _, gripper = self.robot.robot_get_angle_velocity()
 
-        tm1 = time.time()
-        episode["camera"] = self.camera.read(self.cfg.task.camera_names)
-        camera_cost = time.time() - tm1
-
+        print("master", action, master_gripper)
+        print("follow", angles, gripper)
+        episode = {"camera": camera,
+                   "right_master": action + [master_gripper],
+                   "right_puppet": angles + [gripper]}
         fps_wait(self.fps, start)
-        duration = time.time() - start
-        self.bit_width = 1 / duration / 2  # 时刻监控在 t>n * bit_time 情况下单条指令发送的时间
-
-        if info:
-            print(duration, "bit_width:", self.bit_width, "camera:", round(camera_cost, 4))
-            # print("left", episode["left_master"], episode["left_puppet"])
-            # print("right", episode["right_master"], episode["right_puppet"])
         return episode
 
     def record_one(self):
@@ -94,8 +78,10 @@ class Recorder:
 
         start_tm = time.time()
         i = 0
-        while RUNNING_FLAG:
+        while RECORD_FLAG:
+            st = time.time()
             episode = self._record_episode()
+            fps_wait(self.fps, st)
             if i % self.record_frequency == 0:
                 episodes.append(episode)
             i += 1
@@ -106,26 +92,20 @@ class Recorder:
                     open(f, 'wb'))
         print(f'save to {f}, length {len(episodes)} FPS {round(len(episodes) / duration, 2)}')
 
-    def follow(self):
-        while RUNNING_FLAG:
-            self._record_episode(False)
 
-        self.robot.lock()
-
-
-RUNNING_FLAG = False
+RECORD_FLAG = False
 
 
 def _change_running_flag(event):
-    global RUNNING_FLAG
-    RUNNING_FLAG = not RUNNING_FLAG
-    print(f"change running flag to {RUNNING_FLAG}")
+    global RECORD_FLAG
+    RECORD_FLAG = not RECORD_FLAG
+    print(f"change running flag to {RECORD_FLAG}")
 
 
 @hydra.main(version_base="1.2", config_name="coffee", config_path="configs/coffee")
 def run(cfg: DictConfig):
     print(cfg)
-    robot = build_robot(cfg.task.action_dim)
+    robot = XRobot()
     r = Recorder(cfg, robot)
     r.record()
 

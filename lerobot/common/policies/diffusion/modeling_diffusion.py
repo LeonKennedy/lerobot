@@ -137,6 +137,7 @@ class DiffusionPolicy(
             # stack n latest observations from the queue
             batch = {k: torch.stack(list(self._queues[k]), dim=1) for k in batch if k in self._queues}
             actions = self.diffusion.generate_actions(batch)
+            print(actions.shape)
 
             # TODO(rcadene): make above methods return output dictionary?
             actions = self.unnormalize_outputs({"action": actions})["action"]
@@ -144,6 +145,7 @@ class DiffusionPolicy(
             self._queues["action"].extend(actions.transpose(0, 1))
             print("\n")
 
+        action = self._queues["action"].popleft()
         action = self._queues["action"].popleft()
         return action
 

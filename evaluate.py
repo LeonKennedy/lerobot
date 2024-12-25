@@ -85,6 +85,7 @@ def run(cfg: DictConfig):
         bit_width = 1 / (time.time() - start) / 2
         print("OUT:", numpy_action, bit_width)
         robot.set_state(numpy_action, bit_width)
+        # fps_wait(10, start)
         step += 1
 
 

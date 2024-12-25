@@ -2,3 +2,4 @@ pyserial
 loguru
 dynamixel_sdk
 keyboard
+python-can

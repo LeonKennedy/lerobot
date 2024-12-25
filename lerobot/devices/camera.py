@@ -16,12 +16,15 @@ from tqdm.auto import tqdm
 import cv2
 import numpy as np
 
-from .constants import CAMERA_NAME
+try:
+    from .constants import CAMERA_NAME
+except ImportError:
+    from constants import CAMERA_NAME
 
 
 def check_camera():
     camera_indexes = []
-    for i in range(10):
+    for i in range(4):
         cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
         if cap.read()[0]:
             print("find index", i)
@@ -43,8 +46,8 @@ def show():
     for name, id in CAMERA_NAME.items():
         cap = cv2.VideoCapture(id, cv2.CAP_DSHOW)
         cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        cap.set(3, IMAGE_W)
-        cap.set(4, IMAGE_H)
+        cap.set(3, 320)
+        cap.set(4, 240)
         show_capture_info(cap)
         caps[name] = cap
 
@@ -80,7 +83,7 @@ def _init_camera(name: str, i: int, h: int, w: int):
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
-    assert cap.isOpened()
+    assert cap.isOpened(), f"{name} can't open"
     print(name, cap.get(cv2.CAP_PROP_FOURCC), cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     return cap
 
@@ -145,7 +148,7 @@ class CameraGroup:
                 break
 
 
-def test_async_with_sync(cnt=100):
+def Mtest_async_with_sync(cnt=100):
     print("test start!")
     start = time.time()
     for _ in tqdm(range(cnt)):
@@ -167,8 +170,8 @@ def test_async_with_sync(cnt=100):
 
 if __name__ == '__main__':
     # check_camera()
-    # show()
-    cg = CameraGroup()
+    show()
+    # cg = CameraGroup(["TOP", "RIGHT"], 240, 320)
     # cg.read_stack()
-    # test_async_with_sync()
-    cg.show()
+    # # test_async_with_sync()
+    # cg.show()

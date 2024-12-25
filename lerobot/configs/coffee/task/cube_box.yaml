@@ -1,0 +1,8 @@
+name: cube_box
+record_dir: ../data/cube_box
+state_dim: 7
+action_dim: 7
+image_shape: [3, 240, 320]
+camera_names: [TOP, RIGHT]
+chunk_size: 40
+n_action_steps: 16
