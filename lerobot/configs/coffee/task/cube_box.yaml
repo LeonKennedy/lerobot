@@ -5,4 +5,4 @@ action_dim: 7
 image_shape: [3, 240, 320]
 camera_names: [TOP, RIGHT]
 chunk_size: 40
-n_action_steps: 16
+n_action_steps: 40

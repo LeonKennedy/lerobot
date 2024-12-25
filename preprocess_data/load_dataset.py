@@ -22,16 +22,29 @@ _BASE_PATH = "/mnt/d4t/code/act_custom"
 
 class BaseDataset(torch.utils.data.Dataset):
 
+    def __len__(self) -> int:
+        l = self.state.shape[0] - 20
+        return max(l, 1)
+
     def _preprocess(self, data):
         master = []
         puppet = []
         image_top = []
         image_right = []
-        for e in data:
+        # for e in data:
+        #     master.append(e['right_master'])
+        #     puppet.append(e['right_puppet'])
+        #     image_right.append(e['camera']['RIGHT'])
+        #     image_top.append(e['camera']['TOP'])
+
+        # TODO  next qpos be action
+        for e in data[:-1]:
             master.append(e['right_master'])
             puppet.append(e['right_puppet'])
             image_right.append(e['camera']['RIGHT'])
             image_top.append(e['camera']['TOP'])
+        master = puppet[:-1]
+        master.append(data[-1]['right_puppet'])
 
         image_right = np.stack(image_right)
         image_right = np.moveaxis(image_right, -1, 1)
@@ -49,15 +62,10 @@ class EpisodicDataset(BaseDataset):
         self.obs_horizon = obs_horizon
         self.pred_horizon = pred_horizon
 
-    def __len__(self) -> int:
-        # return self.data['qpos'].shape[0] - 20
-        return 10
-
     def __getitem__(self, idx):
-        idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
+        # idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
         img_top = self.img_top[idx: idx + self.obs_horizon]
         img_right = self.img_right[idx: idx + self.obs_horizon]
-
         state = self.state[idx: idx + self.obs_horizon]
 
         action_data = self.state
@@ -89,10 +97,6 @@ class EpisodicActDataset(BaseDataset):
         super(EpisodicDataset).__init__()
         self.action, self.state, self.img_top, self.img_right = self._preprocess(data)
         self.pred_horizon = n_action
-
-    def __len__(self) -> int:
-        l = self.state.shape[0] - 20
-        return max(l, 1)
 
     def __getitem__(self, idx):
         # idx = np.random.randint(0, self.state.shape[0] - int(self.pred_horizon * 0.5))
@@ -191,5 +195,6 @@ def build_act_dataset(path: str, n_action: int):
 
 
 if __name__ == '__main__':
-    ds = build_diffusion_dataset("/mnt/d4t/data/lerobot/cube", 2, 16)
-    print(ds[0])
+    ds, stats = build_diffusion_dataset("/mnt/d4t/data/lerobot/cube_box", 2, 16)
+    for i in range(10):
+        a, b = ds[i]
